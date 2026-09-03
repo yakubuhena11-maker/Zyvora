@@ -1,23 +1,20 @@
 const express = require('express');
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const router = express.Router();
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 router.post('/message', async (req, res) => {
   try {
     const { message } = req.body;
 
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: message }]
-    });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(message);
+    const reply = result.response.text();
 
-    const reply = response.content[0].text;
     res.json({ reply });
   } catch (err) {
-    console.error('Claude API error:', err);
+    console.error('Gemini API error:', err);
     res.status(500).json({ reply: 'Sorry, something went wrong.' });
   }
 });
